@@ -1,19 +1,29 @@
-version: '3.0'
+networks: 
+  external: 
+    external: false
+  internal: 
+    internal: true
 services:
-  haste-server:
-    build: .
+  db:
+    image: "redis:alpine"
     networks:
-      - db-network
+      - internal
+    restart: unless-stopped
+    volumes:
+      - "./data:/data"
+  website:
+    build: "."
+    depends_on:
+      - db
     environment:
-      - STORAGE_TYPE=memcached
-      - STORAGE_HOST=memcached
-      - STORAGE_PORT=11211
-    ports:
-      - 7777:7777
-  memcached:
-    image: memcached:latest
+      - STORAGE_TYPE=redis
+      - STORAGE_HOST=db
+      - STORAGE_PORT=6379
+      - STORAGE_DB=0
     networks:
-      - db-network
-
-networks:
-  db-network:
+      - internal
+      - external
+    ports:
+      - "7777:7777"
+    restart: unless-stopped
+version: "3.0"

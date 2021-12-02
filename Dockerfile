@@ -1,20 +1,30 @@
-FROM node:14.8.0-stretch
+FROM ghcr.io/hazmi35/node:16-dev-alpine as build-stage
 
-RUN mkdir -p /usr/src/app && \
-    chown node:node /usr/src/app
+LABEL name "haste-server (build-stage)"
 
-USER node:node
+WORKDIR /tmp/build
 
-WORKDIR /usr/src/app
+# Now copy project files
+COPY . .
 
-COPY --chown=node:node . .
+# Install node dependencies
+RUN npm install --production
 
-RUN npm install && \
-    npm install redis@0.8.1 && \
-    npm install pg@4.1.1 && \
-    npm install memcached@2.2.2 && \
-    npm install aws-sdk@2.738.0 && \
-    npm install rethinkdbdash@2.3.31
+# Get ready for production
+FROM ghcr.io/hazmi35/node:16-alpine
+
+LABEL name "haste-server"
+
+WORKDIR /app
+
+# Copy files from build-stage
+COPY --from=build-stage /tmp/build/package*.json .
+COPY --from=build-stage /tmp/build/*.js .
+COPY --from=build-stage /tmp/build/lib ./lib
+COPY --from=build-stage /tmp/build/docker-entrypoint.* .
+COPY --from=build-stage /tmp/build/static ./static
+COPY --from=build-stage /tmp/build/node_modules ./node_modules
+COPY --from=build-stage /tmp/build/*.md .
 
 ENV STORAGE_TYPE=memcached \
     STORAGE_HOST=127.0.0.1 \
@@ -54,10 +64,10 @@ ENV RATELIMITS_NORMAL_TOTAL_REQUESTS=500\
     RATELIMITS_BLACKLIST=example1.blacklist,example2.blacklist
 ENV DOCUMENTS=about=./about.md
 
-EXPOSE ${PORT}
+EXPOSE ${PORT}/tcp
 STOPSIGNAL SIGINT
-ENTRYPOINT [ "bash", "docker-entrypoint.sh" ]
+ENTRYPOINT [ "ash", "docker-entrypoint.sh" ]
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s \
-    --retries=3 CMD [ "curl" , "-f" "localhost:${PORT}", "||", "exit", "1"]
-CMD ["npm", "start"]
+    --retries=3 CMD node healthcheck.js
+CMD ["node", "server.js"]
