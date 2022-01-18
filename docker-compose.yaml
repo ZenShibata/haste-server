@@ -1,13 +1,13 @@
-networks: 
-  external: 
+networks:
+  internet:
     external: false
-  internal: 
+  private:
     internal: true
 services:
   db:
     image: "redis:alpine"
     networks:
-      - internal
+      - private
     restart: unless-stopped
     volumes:
       - "./data:/data"
@@ -21,8 +21,8 @@ services:
       - STORAGE_PORT=6379
       - STORAGE_DB=0
     networks:
-      - internal
-      - external
+      - private
+      - internet
     ports:
       - "7777:7777"
     restart: unless-stopped
