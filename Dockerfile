@@ -8,7 +8,7 @@ WORKDIR /tmp/build
 COPY . .
 
 # Install node dependencies
-RUN npm install --production
+RUN npm ci --production
 
 # Get ready for production
 FROM ghcr.io/hazmi35/node:16-alpine
