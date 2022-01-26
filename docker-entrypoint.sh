@@ -6,4 +6,4 @@ set -e
 
 node ./docker-entrypoint.js > ./config.js
 
-exec "$@"
+exec sudo -E -u node "$@"
