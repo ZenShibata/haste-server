@@ -1,7 +1,15 @@
 networks:
   internet:
+    ipam:
+      driver: default
+      config:
+        - subnet: "192.168.255.253/30"
     external: false
   private:
+    ipam:
+      driver: default
+      config:
+        - subnet: "192.168.255.246/29"
     internal: true
 services:
   db:
