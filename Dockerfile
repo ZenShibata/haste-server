@@ -15,16 +15,18 @@ FROM ghcr.io/hazmi35/node:16-alpine
 
 LABEL name "haste-server"
 
+RUN apk add --no-cache sudo
+
 WORKDIR /app
 
 # Copy files from build-stage
-COPY --from=build-stage /tmp/build/package*.json .
-COPY --from=build-stage /tmp/build/*.js .
-COPY --from=build-stage /tmp/build/lib ./lib
-COPY --from=build-stage /tmp/build/docker-entrypoint.* .
-COPY --from=build-stage /tmp/build/static ./static
-COPY --from=build-stage /tmp/build/node_modules ./node_modules
-COPY --from=build-stage /tmp/build/*.md .
+COPY --from=build-stage --chown=node /tmp/build/package*.json .
+COPY --from=build-stage --chown=node /tmp/build/*.js .
+COPY --from=build-stage --chown=node /tmp/build/lib ./lib
+COPY --from=build-stage --chown=node /tmp/build/docker-entrypoint.* .
+COPY --from=build-stage --chown=node /tmp/build/static ./static
+COPY --from=build-stage --chown=node /tmp/build/node_modules ./node_modules
+COPY --from=build-stage --chown=node /tmp/build/*.md .
 
 ENV STORAGE_TYPE=memcached \
     STORAGE_HOST=127.0.0.1 \
