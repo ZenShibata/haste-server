@@ -4,7 +4,7 @@ networks:
       driver: default
       config:
         - subnet: "192.168.255.253/30"
-    external: false
+    internal: false
   private:
     ipam:
       driver: default
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
     volumes:
       - "./data:/data"
-  website:
+  haste-server:
     build: "."
     depends_on:
       - db
@@ -28,10 +28,10 @@ services:
       - STORAGE_HOST=db
       - STORAGE_PORT=6379
       - STORAGE_DB=0
-    networks:
-      - private
-      - internet
     ports:
       - "7777:7777"
     restart: unless-stopped
+    networks:
+      - private
+      - internet
 version: "3.0"
